@@ -157,7 +157,7 @@ def parse_json_with_retry(prompt: str, raw: str) -> dict:
             raw = call_llm(
                 original_prompt
                 + f"\n\n[CORRECTION] Your last response was invalid JSON."
-                  f" Error: {e}\nReturn ONLY valid JSON."
+                  f" Error: {e}\nYour response was:\n{raw}\nReturn ONLY valid JSON."
             )
 
 
