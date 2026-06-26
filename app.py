@@ -185,6 +185,36 @@ h1 a, h2 a, h3 a, h4 a,
     color: #000 !important;
 }
 
+/* ── Remove column borders ── */
+[data-testid="stColumn"] {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* ── Download button same style as primary ── */
+[data-testid="stDownloadButton"] button,
+[data-testid="stDownloadButton"] button p,
+[data-testid="stDownloadButton"] button span {
+    font-family: var(--font-mono) !important;
+    font-size: 0.8rem !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    background: var(--fg) !important;
+    color: #ffffff !important;
+    border: 2px solid var(--fg) !important;
+    border-radius: 0 !important;
+    padding: 0.9rem 2.5rem !important;
+    transition: all 80ms !important;
+    width: 100% !important;
+}
+[data-testid="stDownloadButton"] button:hover,
+[data-testid="stDownloadButton"] button:hover p,
+[data-testid="stDownloadButton"] button:hover span {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
 /* Sidebar */
 [data-testid="stSidebar"] { display: none; }
 
