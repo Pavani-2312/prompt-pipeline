@@ -218,7 +218,8 @@ def run(raw_text: str) -> dict:
     s1 = stage1_understand(raw_text)
     show("STAGE 1 — UNDERSTAND  [role + structured_output]", s1)
 
-    if s1.get("errors"):
+    critical = bool(s1.get("errors"))
+    if critical:
         print(f"\n  ⚠  WARNING: Stage 1 errors: {s1['errors']}")
 
     s2 = stage2_reason(s1)
@@ -227,17 +228,22 @@ def run(raw_text: str) -> dict:
     s3 = stage3_produce(s1, s2)
     show("STAGE 3 — PRODUCE  [goal_oriented + constraints]", s3)
 
-    s4 = stage4_selfcheck(s1, s3)
-    show("STAGE 4 — SELF-CHECK  [role + structured_output]", s4)
+    if critical:
+        print("\n  ⚠  Skipping Stage 4: input was unparseable, scores would be misleading.")
+        return s3
 
-    if s4.get("redo_required"):
-        issues = "\n".join(f"- {i}" for i in s4.get("issues", []))
-        print(f"\n  ↺  Redo triggered. Issues:\n{issues}")
-        s3 = stage3_produce(s1, s2, revision_notes=issues)
-        show("STAGE 3 — PRODUCE (revised)", s3)
+    for redo in range(STAGE4_MAX_REDO + 1):
+        s4 = stage4_selfcheck(s1, s3)
+        show(f"STAGE 4 — SELF-CHECK  [role + structured_output] (attempt {redo + 1})", s4)
+        if not s4.get("redo_required"):
+            break
+        if redo < STAGE4_MAX_REDO:
+            issues = "\n".join(f"- {i}" for i in s4.get("issues", []))
+            print(f"\n  ↺  Redo {redo + 1}/{STAGE4_MAX_REDO} triggered. Issues:\n{issues}")
+            s3 = stage3_produce(s1, s2, revision_notes=issues)
+            show(f"STAGE 3 — PRODUCE (revised {redo + 1})", s3)
 
     return s3
-
 
 # ---------------------------------------------------------------------------
 # Entry point
