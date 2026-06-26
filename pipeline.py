@@ -133,12 +133,10 @@ def call_llm(prompt: str) -> str:
 
 
 def _strip_fences(text: str) -> str:
-    text = text.strip()
-    if text.startswith("```"):
-        lines = text.splitlines()
-        end = -1 if lines[-1].strip() == "```" else len(lines)
-        text = "\n".join(lines[1:end])
-    return text.strip()
+    """Extract the first JSON object or array from text, ignoring fences/prose."""
+    import re
+    m = re.search(r'(\{.*\}|\[.*\])', text, re.DOTALL)
+    return m.group(0) if m else text.strip()
 
 
 def parse_json_with_retry(prompt: str, raw: str) -> dict:
