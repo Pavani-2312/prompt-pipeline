@@ -10,7 +10,6 @@ env/
 
 # Environment / secrets
 .env
-*.env
 
 # Proof run output
 proof_runs.txt
