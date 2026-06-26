@@ -185,9 +185,14 @@ def stage2_reason(s1: dict) -> dict:
 
 def stage3_produce(s1: dict, s2: dict, revision_notes: str = "") -> dict:
     # Technique: goal_oriented + constraints
+    try:
+        stage2_json = json.dumps(s2, indent=2)
+    except (KeyError, TypeError) as e:
+        print(f"  [warn] Stage 2 data issue: {e} — using partial input")
+        stage2_json = json.dumps({k: v for k, v in s2.items() if k in ("days", "warnings", "feasibility_notes")}, indent=2)
     prompt = PROMPT_3.format(
         stage1_json=json.dumps(s1, indent=2),
-        stage2_json=json.dumps(s2, indent=2),
+        stage2_json=stage2_json,
     )
     if revision_notes:
         prompt += f"\n\n[REVISION REQUIRED] Fix these issues:\n{revision_notes}"
