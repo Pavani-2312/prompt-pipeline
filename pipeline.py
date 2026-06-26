@@ -250,16 +250,19 @@ def run(raw_text: str) -> dict:
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    test_inputs = [
-        "3 days in Kyoto, love temples and food, mid budget, vegetarian",
-        "10 days Tokyo shoestring, obsessed with anime and street food, bad knee",
-        "asdkjhaksjdhaksjdh 123 ??? 🤔🤔🤔",
-    ]
-    for i, text in enumerate(test_inputs, 1):
-        print(f"\n{'#'*60}")
-        print(f"  RUN {i} OF {len(test_inputs)}")
-        print(f"{'#'*60}")
-        try:
-            run(text)
-        except Exception as e:
-            print(f"\n[ERROR] Run {i} aborted: {e}")
+    if len(sys.argv) > 1:
+        run(" ".join(sys.argv[1:]))
+    else:
+        test_inputs = [
+            "3 days in Kyoto, love temples and food, mid budget, vegetarian",
+            "10 days Tokyo shoestring, obsessed with anime and street food, bad knee",
+            "asdkjhaksjdhaksjdh 123 ??? 🤔🤔🤔",
+        ]
+        for i, text in enumerate(test_inputs, 1):
+            print(f"\n{'#'*60}")
+            print(f"  RUN {i} OF {len(test_inputs)}")
+            print(f"{'#'*60}")
+            try:
+                run(text)
+            except Exception as e:
+                print(f"\n[ERROR] Run {i} aborted: {e}")
