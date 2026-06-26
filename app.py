@@ -100,22 +100,26 @@ p, li, span { font-family: var(--font-body); }
 [data-testid="stTextArea"] label { display: none !important; }
 
 /* Button */
-[data-testid="stButton"] button {
+[data-testid="stButton"] button,
+[data-testid="stButton"] button p,
+[data-testid="stButton"] button span {
     font-family: var(--font-mono) !important;
     font-size: 0.8rem !important;
     letter-spacing: 0.12em !important;
     text-transform: uppercase !important;
     background: var(--fg) !important;
-    color: var(--bg) !important;
+    color: #ffffff !important;
     border: 2px solid var(--fg) !important;
     border-radius: 0 !important;
     padding: 0.9rem 2.5rem !important;
     transition: all 80ms !important;
     width: 100% !important;
 }
-[data-testid="stButton"] button:hover {
-    background: var(--bg) !important;
-    color: var(--fg) !important;
+[data-testid="stButton"] button:hover,
+[data-testid="stButton"] button:hover p,
+[data-testid="stButton"] button:hover span {
+    background: #ffffff !important;
+    color: #000000 !important;
 }
 [data-testid="stButton"] button:focus-visible {
     outline: 3px solid var(--fg) !important;
@@ -155,13 +159,17 @@ h1 a, h2 a, h3 a, h4 a,
 }
 
 /* ── Hide textarea label properly ── */
-[data-testid="stTextArea"] label {
+[data-testid="stTextArea"] label,
+[data-testid="stTextArea"] > label,
+[data-testid="stTextArea"] > div > label {
+    display: none !important;
     visibility: hidden !important;
     height: 0 !important;
+    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
-    display: block !important;
+    position: absolute !important;
 }
 
 /* ── Stronger font rendering ── */
@@ -421,6 +429,7 @@ def main():
         placeholder="e.g. 5 days in Kyoto, love temples and street food, mid budget, vegetarian…",
         height=90,
         key="trip_input",
+        label_visibility="collapsed",
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
