@@ -146,6 +146,37 @@ p, li, span { font-family: var(--font-body); }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--fg); }
 
+/* ── Hide Streamlit heading anchor icons ── */
+h1 a, h2 a, h3 a, h4 a,
+.stMarkdown h1 a, .stMarkdown h2 a,
+[data-testid="stMarkdownContainer"] a[href^="#"] {
+    display: none !important;
+}
+
+/* ── Hide textarea label properly ── */
+[data-testid="stTextArea"] label {
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    display: block !important;
+}
+
+/* ── Stronger font rendering ── */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* ── Body text contrast ── */
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] li,
+[data-testid="stMarkdownContainer"] span {
+    color: #000 !important;
+}
+
 /* Sidebar */
 [data-testid="stSidebar"] { display: none; }
 
@@ -175,7 +206,6 @@ def _thin_rule() -> None:
 def render_hero() -> None:
     st.markdown("""
     <div style="padding: 5rem 0 3rem; position:relative;">
-        <!-- horizontal line texture -->
         <div style="
             position:absolute;inset:0;
             background-image: repeating-linear-gradient(0deg,transparent,transparent 1px,#000 1px,#000 2px);
@@ -186,18 +216,32 @@ def render_hero() -> None:
             font-family:var(--font-mono);font-size:0.72rem;
             letter-spacing:0.18em;text-transform:uppercase;
             color:var(--muted-fg);margin:0 0 1.5rem;
-        ">✦ Prompt Pipeline — Trip Planner</p>
-        <h1 style="
-            font-family:var(--font-display);
+        ">&#10022; Prompt Pipeline &mdash; Trip Planner</p>
+        <div style="
+            font-family:'Playfair Display',Georgia,serif;
             font-size:clamp(3.5rem,9vw,8rem);
             font-weight:900;line-height:0.95;
             letter-spacing:-0.04em;margin:0 0 1.5rem;
-        ">Plan<br><em style='font-weight:400'>your</em><br>Journey.</h1>
+            color:#000;
+        ">Plan<br><em style='font-weight:400'>your</em><br>Journey&#46;</div>
         <div style="display:flex;align-items:center;gap:1rem;margin-top:2rem;">
             <div style="width:48px;height:4px;background:#000"></div>
             <div style="width:12px;height:12px;border:2px solid #000"></div>
         </div>
     </div>
+    """, unsafe_allow_html=True)
+
+
+def _scroll_to_bottom() -> None:
+    """Inject JS to scroll the Streamlit main content to the bottom."""
+    st.markdown("""
+    <script>
+        (function() {
+            const main = window.parent.document.querySelector('[data-testid="stMainBlockContainer"]');
+            if (main) main.scrollTo({ top: main.scrollHeight, behavior: 'smooth' });
+            else window.parent.scrollTo({ top: window.parent.document.body.scrollHeight, behavior: 'smooth' });
+        })();
+    </script>
     """, unsafe_allow_html=True)
 
 def render_constraints(s1: dict) -> None:
@@ -405,15 +449,18 @@ def main():
                 st.warning(f"Input warnings: {', '.join(s1['errors'])}")
             render_constraints(s1)
             status.update(label="**Stage 1** — Constraints parsed ✦", state="complete", expanded=False)
+        _scroll_to_bottom()
 
         with st.status("**Stage 2** — Reasoning about your trip…", expanded=True) as status:
             s2 = stage2_reason(s1)
             render_reasoning(s2)
             status.update(label="**Stage 2** — Day plan reasoned ✦", state="complete", expanded=False)
+        _scroll_to_bottom()
 
         with st.status("**Stage 3** — Writing your itinerary…", expanded=True) as status:
             s3 = stage3_produce(s1, s2)
             status.update(label="**Stage 3** — Itinerary drafted ✦", state="complete", expanded=False)
+        _scroll_to_bottom()
 
         critical = bool(s1.get("errors"))
         if not critical:
@@ -428,6 +475,7 @@ def main():
                         s3 = stage3_produce(s1, s2, revision_notes=issues)
                 render_selfcheck(s4)
                 status.update(label="**Stage 4** — Quality check complete ✦", state="complete", expanded=False)
+            _scroll_to_bottom()
 
         # Persist to session state so download button doesn't wipe the page
         st.session_state.result = {"s1": s1, "s3": s3, "s4": s4, "critical": critical}
