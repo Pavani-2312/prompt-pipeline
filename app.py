@@ -5,6 +5,7 @@ Design: Minimalist Monochrome (editorial luxury)
 
 import json
 import streamlit as st
+import streamlit.components.v1 as components
 from pipeline import (
     stage1_understand, stage2_reason, stage3_produce, stage4_selfcheck,
     STAGE4_MAX_REDO,
@@ -172,8 +173,7 @@ h1 a, h2 a, h3 a, h4 a,
 
 /* ── Body text contrast ── */
 [data-testid="stMarkdownContainer"] p,
-[data-testid="stMarkdownContainer"] li,
-[data-testid="stMarkdownContainer"] span {
+[data-testid="stMarkdownContainer"] li {
     color: #000 !important;
 }
 
@@ -233,16 +233,11 @@ def render_hero() -> None:
 
 
 def _scroll_to_bottom() -> None:
-    """Inject JS to scroll the Streamlit main content to the bottom."""
-    st.markdown("""
-    <script>
-        (function() {
-            const main = window.parent.document.querySelector('[data-testid="stMainBlockContainer"]');
-            if (main) main.scrollTo({ top: main.scrollHeight, behavior: 'smooth' });
-            else window.parent.scrollTo({ top: window.parent.document.body.scrollHeight, behavior: 'smooth' });
-        })();
-    </script>
-    """, unsafe_allow_html=True)
+    """Scroll the page to the bottom after each stage completes."""
+    components.html(
+        "<script>window.parent.scrollTo({top: window.parent.document.body.scrollHeight, behavior: 'smooth'});</script>",
+        height=0,
+    )
 
 def render_constraints(s1: dict) -> None:
     st.markdown(_mono("Parsed Constraints"), unsafe_allow_html=True)
@@ -443,28 +438,28 @@ def main():
 
         s1 = s2 = s3 = s4 = None
 
-        with st.status("**Stage 1** — Understanding your request…", expanded=True) as status:
+        with st.status("**Stage 1** — Understanding your request…", expanded=False) as status:
             s1 = stage1_understand(raw_text)
             if s1.get("errors"):
                 st.warning(f"Input warnings: {', '.join(s1['errors'])}")
-            render_constraints(s1)
             status.update(label="**Stage 1** — Constraints parsed ✦", state="complete", expanded=False)
+        render_constraints(s1)
         _scroll_to_bottom()
 
-        with st.status("**Stage 2** — Reasoning about your trip…", expanded=True) as status:
+        with st.status("**Stage 2** — Reasoning about your trip…", expanded=False) as status:
             s2 = stage2_reason(s1)
-            render_reasoning(s2)
             status.update(label="**Stage 2** — Day plan reasoned ✦", state="complete", expanded=False)
+        render_reasoning(s2)
         _scroll_to_bottom()
 
-        with st.status("**Stage 3** — Writing your itinerary…", expanded=True) as status:
+        with st.status("**Stage 3** — Writing your itinerary…", expanded=False) as status:
             s3 = stage3_produce(s1, s2)
             status.update(label="**Stage 3** — Itinerary drafted ✦", state="complete", expanded=False)
         _scroll_to_bottom()
 
         critical = bool(s1.get("errors"))
         if not critical:
-            with st.status("**Stage 4** — Self-check in progress…", expanded=True) as status:
+            with st.status("**Stage 4** — Self-check in progress…", expanded=False) as status:
                 for redo in range(STAGE4_MAX_REDO + 1):
                     s4 = stage4_selfcheck(s1, s3)
                     if not s4.get("redo_required"):
@@ -473,8 +468,8 @@ def main():
                         issues = "\n".join(f"- {i}" for i in s4.get("issues", []))
                         st.info(f"Revising itinerary…\n{issues}")
                         s3 = stage3_produce(s1, s2, revision_notes=issues)
-                render_selfcheck(s4)
                 status.update(label="**Stage 4** — Quality check complete ✦", state="complete", expanded=False)
+            render_selfcheck(s4)
             _scroll_to_bottom()
 
         # Persist to session state so download button doesn't wipe the page
