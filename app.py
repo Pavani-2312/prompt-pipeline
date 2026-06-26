@@ -370,6 +370,10 @@ def main():
     render_hero()
     _rule(4)
 
+    # Initialise session state
+    if "result" not in st.session_state:
+        st.session_state.result = None   # dict with s1, s3, s4, critical
+
     # Input area
     st.markdown('<div style="padding:2.5rem 0 1rem">', unsafe_allow_html=True)
     st.markdown(_mono("Describe your trip"), unsafe_allow_html=True)
@@ -393,8 +397,8 @@ def main():
         st.markdown('<div style="margin-top:3rem"></div>', unsafe_allow_html=True)
         _rule(4)
 
-        # Stage 1
         s1 = s2 = s3 = s4 = None
+
         with st.status("**Stage 1** — Understanding your request…", expanded=True) as status:
             s1 = stage1_understand(raw_text)
             if s1.get("errors"):
@@ -402,18 +406,15 @@ def main():
             render_constraints(s1)
             status.update(label="**Stage 1** — Constraints parsed ✦", state="complete", expanded=False)
 
-        # Stage 2
         with st.status("**Stage 2** — Reasoning about your trip…", expanded=True) as status:
             s2 = stage2_reason(s1)
             render_reasoning(s2)
             status.update(label="**Stage 2** — Day plan reasoned ✦", state="complete", expanded=False)
 
-        # Stage 3
         with st.status("**Stage 3** — Writing your itinerary…", expanded=True) as status:
             s3 = stage3_produce(s1, s2)
             status.update(label="**Stage 3** — Itinerary drafted ✦", state="complete", expanded=False)
 
-        # Stage 4 (skip if critical parse errors)
         critical = bool(s1.get("errors"))
         if not critical:
             with st.status("**Stage 4** — Self-check in progress…", expanded=True) as status:
@@ -428,17 +429,21 @@ def main():
                 render_selfcheck(s4)
                 status.update(label="**Stage 4** — Quality check complete ✦", state="complete", expanded=False)
 
-        # Final itinerary
-        render_itinerary(s3)
+        # Persist to session state so download button doesn't wipe the page
+        st.session_state.result = {"s1": s1, "s3": s3, "s4": s4, "critical": critical}
 
-        # Download
+    # Render results from session state (survives reruns caused by download button)
+    if st.session_state.result:
+        r = st.session_state.result
+        render_itinerary(r["s3"])
+
         _rule(1)
         st.markdown('<div style="padding:1.5rem 0">', unsafe_allow_html=True)
         _, dl_col, _ = st.columns([1, 2, 1])
         with dl_col:
             st.download_button(
                 label="Download Itinerary JSON →",
-                data=json.dumps(s3, indent=2),
+                data=json.dumps(r["s3"], indent=2),
                 file_name="itinerary.json",
                 mime="application/json",
                 use_container_width=True,
